@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int         @id @default(autoincrement())
+  email      String      @unique
+  name       String?
+  password   String
+  isAdmin    Boolean     @default(false) @map("is_admin")
+  deletedAt  DateTime?   @map("deleted_at")
+  movieLists MovieList[]
+  reviews    Review[]
+}
+
+model Movie {
+  id             Int             @id @default(autoincrement())
+  title          String
+  description    String?
+  image          String?
+  releaseDate    DateTime
+  genre          String
+  rating         Float
+  duration       Int
+  deletedAt      DateTime?       @map("deleted_at")
+  movieListItems MovieListItem[]
+  reviews        Review[]
+}
+
+model MovieList {
+  id             Int             @id @default(autoincrement())
+  name           String
+  userId         Int
+  user           User            @relation(fields: [userId], references: [id])
+  movieListItems MovieListItem[]
+}
+
+model MovieListItem {
+  id          String    @id @default(uuid())
+  movieListId Int
+  movieId     Int
+  movie       Movie     @relation(fields: [movieId], references: [id])
+  movieList   MovieList @relation(fields: [movieListId], references: [id])
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+  userId    Int
+  movieId   Int
+  movie     Movie    @relation(fields: [movieId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, movieId])
+}
